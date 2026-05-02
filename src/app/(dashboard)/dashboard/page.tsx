@@ -9,6 +9,7 @@ import {
   Card,
   Col,
   Flex,
+  Input,
   Progress,
   Row,
   Segmented,
@@ -21,6 +22,7 @@ import {
 } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import {
+  AppstoreOutlined,
   CheckCircleOutlined,
   ClockCircleOutlined,
   EyeOutlined,
@@ -28,40 +30,30 @@ import {
   FolderOpenOutlined,
   PlusOutlined,
   RightOutlined,
+  SearchOutlined,
   SyncOutlined,
   TeamOutlined,
+  UnorderedListOutlined,
   UserOutlined,
 } from '@ant-design/icons'
 import Link from 'next/link'
 import StatusBadge from '@/components/ui/StatusBadge'
 import PriorityBadge from '@/components/ui/PriorityBadge'
 import type { Ticket } from '@/types/ticket.types'
-import { useTickets } from '@/hooks/useTickets'
+import { useTickets, useCreateTicket } from '@/hooks/useTickets'
 import { useAuthStore } from '@/store/auth.store'
+import CreateTicketModal from '@/components/tickets/CreateTicketModal'
+import TicketKanban from '@/components/tickets/TicketKanban'
 
 const { Title, Text } = Typography
 
-// Activity and members are still mocked for this UI as they don't have dedicated endpoints yet.
-const MOCK_ACTIVITY = [
-  { id: 1, user: 'Ana García',    action: 'created ticket',      target: 'Fix authentication bug',       time: '30m ago', color: '#3525cd' },
-  { id: 2, user: 'Luis Martínez', action: 'moved to',            target: 'In Progress',                  time: '1h ago',  color: '#fa8c16' },
-  { id: 3, user: 'Sara López',    action: 'commented on',        target: 'Update API documentation',     time: '2h ago',  color: '#52c41a' },
-  { id: 4, user: 'Pedro Ruiz',    action: 'closed ticket',       target: 'Add CSV export to reports',    time: '3h ago',  color: '#8c8c8c' },
-  { id: 5, user: 'Ana García',    action: 'assigned ticket to',  target: 'Luis Martínez',                time: '5h ago',  color: '#3525cd' },
-]
-
-const MOCK_MEMBERS = [
-  { name: 'Ana García',    tickets: 2, color: '#3525cd' },
-  { name: 'Luis Martínez', tickets: 1, color: '#fa8c16' },
-  { name: 'Sara López',    tickets: 1, color: '#52c41a' },
-  { name: 'Pedro Ruiz',    tickets: 1, color: '#722ed1' },
-]
 
 const columns: ColumnsType<Ticket> = [
   {
     title: 'Title',
     dataIndex: 'title',
     key: 'title',
+    sorter: (a, b) => a.title.localeCompare(b.title),
     render: (title: string, record) => (
       <Flex vertical gap={2}>
         <Link href={`/tickets/${record.id}`}>
@@ -78,6 +70,7 @@ const columns: ColumnsType<Ticket> = [
     dataIndex: 'status',
     key: 'status',
     width: 130,
+    sorter: (a, b) => a.status.localeCompare(b.status),
     render: (status) => <StatusBadge status={status} />,
     filters: [
       { text: 'Open',        value: 'open' },
@@ -151,9 +144,11 @@ function formatRelative(dateStr: string): string {
 
 export default function DashboardPage() {
   const [ticketView, setTicketView] = useState<'all' | 'mine'>('all')
+  const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list')
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [searchText, setSearchText] = useState('')
   const user = useAuthStore((s) => s.user)
 
-  // Fetch real tickets from backend
   const { data, isLoading } = useTickets({ limit: 50 })
   let tickets = data?.items || []
 
@@ -163,12 +158,22 @@ export default function DashboardPage() {
     )
   }
 
+  if (searchText) {
+    const lowSearch = searchText.toLowerCase()
+    tickets = tickets.filter(
+      (t) =>
+        t.title.toLowerCase().includes(lowSearch) ||
+        t.description?.toLowerCase().includes(lowSearch) ||
+        t.id.toLowerCase().includes(lowSearch)
+    )
+  }
+
   const openCount     = tickets.filter(t => t.status === 'open').length
   const progressCount = tickets.filter(t => t.status === 'in_progress').length
   const reviewCount   = tickets.filter(t => t.status === 'in_review').length
   const closedCount   = tickets.filter(t => t.status === 'closed').length
   const displayTotal  = tickets.length
-  const pctTotal      = displayTotal || 1 // Avoid completely dividing by zero
+  const pctTotal      = displayTotal || 1
 
   return (
     <Flex vertical gap="large">
@@ -185,11 +190,13 @@ export default function DashboardPage() {
             <Title level={3} style={{ margin: 0 }}>Dashboard</Title>
             <Text type="secondary">Overview of your team's ticketing activity</Text>
           </Flex>
-          <Link href="/tickets">
-            <Button type="primary" icon={<PlusOutlined />}>
-              New Ticket
-            </Button>
-          </Link>
+          <Button 
+            type="primary" 
+            icon={<PlusOutlined />}
+            onClick={() => setIsCreateModalOpen(true)}
+          >
+            New Ticket
+          </Button>
         </Flex>
       </Flex>
 
@@ -241,19 +248,39 @@ export default function DashboardPage() {
           <Card
             title={
               <Flex justify="space-between" align="center" wrap="wrap" gap="small">
-                <Space>
+                <Space size="middle">
                   <Text strong>Recent Tickets</Text>
-                  <Badge count={displayTotal} color="blue" />
+                  <Input
+                    placeholder="Search tickets..."
+                    prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
+                    size="small"
+                    allowClear
+                    value={searchText}
+                    onChange={(e) => setSearchText(e.target.value)}
+                    style={{ width: 200 }}
+                  />
+                  <Badge count={tickets.length} color="blue" />
                 </Space>
-                <Segmented
-                  size="small"
-                  value={ticketView}
-                  onChange={(v) => setTicketView(v as 'all' | 'mine')}
-                  options={[
-                    { label: 'All', value: 'all' },
-                    { label: 'Mine', value: 'mine' },
-                  ]}
-                />
+                <Space>
+                  <Segmented
+                    size="small"
+                    value={viewMode}
+                    onChange={(v) => setViewMode(v as 'list' | 'kanban')}
+                    options={[
+                      { label: <Space><UnorderedListOutlined /> List</Space>, value: 'list' },
+                      { label: <Space><AppstoreOutlined /> Kanban</Space>, value: 'kanban' },
+                    ]}
+                  />
+                  <Segmented
+                    size="small"
+                    value={ticketView}
+                    onChange={(v) => setTicketView(v as 'all' | 'mine')}
+                    options={[
+                      { label: 'All', value: 'all' },
+                      { label: 'Mine', value: 'mine' },
+                    ]}
+                  />
+                </Space>
               </Flex>
             }
             extra={
@@ -264,15 +291,19 @@ export default function DashboardPage() {
               </Link>
             }
           >
-            <Table<Ticket>
-              dataSource={tickets}
-              columns={columns}
-              rowKey="id"
-              size="small"
-              pagination={{ pageSize: 5, size: 'small', showSizeChanger: false }}
-              scroll={{ x: 600 }}
-              loading={isLoading}
-            />
+            {viewMode === 'list' ? (
+              <Table<Ticket>
+                dataSource={tickets}
+                columns={columns}
+                rowKey="id"
+                size="small"
+                pagination={{ pageSize: 5, size: 'small', showSizeChanger: false }}
+                scroll={{ x: 600 }}
+                loading={isLoading}
+              />
+            ) : (
+              <TicketKanban tickets={tickets} onAddTicket={() => setIsCreateModalOpen(true)} />
+            )}
           </Card>
         </Col>
 
@@ -339,55 +370,14 @@ export default function DashboardPage() {
               </Flex>
             </Card>
 
-            <Card
-              title={
-                <Space>
-                  <ClockCircleOutlined />
-                  <Text strong>Recent Activity</Text>
-                </Space>
-              }
-            >
-              <Flex vertical gap="middle">
-                {MOCK_ACTIVITY.map((item) => (
-                  <Flex key={item.id} gap="small" align="flex-start" style={{ paddingBottom: 8, borderBottom: '1px solid #f0f0f0' }}>
-                    <Avatar size="small" icon={<UserOutlined />} style={{ backgroundColor: item.color }} />
-                    <Flex vertical>
-                      <Text style={{ fontSize: 13 }}>
-                        <Text strong style={{ fontSize: 13 }}>{item.user}</Text>
-                        {' '}{item.action}{' '}
-                        <Text italic style={{ fontSize: 13 }}>{item.target}</Text>
-                      </Text>
-                      <Text type="secondary" style={{ fontSize: 12 }}>{item.time}</Text>
-                    </Flex>
-                  </Flex>
-                ))}
-              </Flex>
-            </Card>
-
-            <Card
-              title={
-                <Space>
-                  <TeamOutlined />
-                  <Text strong>Active Members</Text>
-                </Space>
-              }
-            >
-              <Flex vertical gap="middle">
-                {MOCK_MEMBERS.map((member, idx) => (
-                  <Flex key={idx} justify="space-between" align="center" style={{ paddingBottom: 8, borderBottom: '1px solid #f0f0f0' }}>
-                    <Flex gap="small" align="center">
-                      <Avatar size="small" icon={<UserOutlined />} style={{ backgroundColor: member.color }} />
-                      <Text style={{ fontSize: 13 }}>{member.name}</Text>
-                    </Flex>
-                    <Badge count={member.tickets} color="blue" />
-                  </Flex>
-                ))}
-              </Flex>
-            </Card>
 
           </Flex>
         </Col>
       </Row>
+      <CreateTicketModal 
+        open={isCreateModalOpen} 
+        onClose={() => setIsCreateModalOpen(false)} 
+      />
     </Flex>
   )
 }
