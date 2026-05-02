@@ -44,11 +44,11 @@ import { useTickets, useCreateTicket } from '@/hooks/useTickets'
 import { useAuthStore } from '@/store/auth.store'
 import CreateTicketModal from '@/components/tickets/CreateTicketModal'
 import TicketKanban from '@/components/tickets/TicketKanban'
+import TicketDetailModal from '@/components/tickets/TicketDetailModal'
 
 const { Title, Text } = Typography
 
-
-const columns: ColumnsType<Ticket> = [
+const getColumns = (onView: (id: string) => void): ColumnsType<Ticket> => [
   {
     title: 'Title',
     dataIndex: 'title',
@@ -56,9 +56,9 @@ const columns: ColumnsType<Ticket> = [
     sorter: (a, b) => a.title.localeCompare(b.title),
     render: (title: string, record) => (
       <Flex vertical gap={2}>
-        <Link href={`/tickets/${record.id}`}>
+        <div style={{ cursor: 'pointer' }} onClick={() => onView(record.id)}>
           <Text strong style={{ color: '#3525cd' }}>{title}</Text>
-        </Link>
+        </div>
         <Text type="secondary" style={{ fontSize: 12 }}>
           #{record.id.substring(0, 8)} · by {record.author?.name || 'Unknown'}
         </Text>
@@ -126,9 +126,7 @@ const columns: ColumnsType<Ticket> = [
     key: 'actions',
     width: 60,
     render: (_, record) => (
-      <Link href={`/tickets/${record.id}`}>
-        <Button type="text" icon={<EyeOutlined />} size="small" />
-      </Link>
+      <Button type="text" icon={<EyeOutlined />} size="small" onClick={() => onView(record.id)} />
     ),
   },
 ]
@@ -146,6 +144,7 @@ export default function DashboardPage() {
   const [ticketView, setTicketView] = useState<'all' | 'mine'>('all')
   const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list')
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null)
   const [searchText, setSearchText] = useState('')
   const user = useAuthStore((s) => s.user)
 
@@ -294,7 +293,7 @@ export default function DashboardPage() {
             {viewMode === 'list' ? (
               <Table<Ticket>
                 dataSource={tickets}
-                columns={columns}
+                columns={getColumns(setSelectedTicketId)}
                 rowKey="id"
                 size="small"
                 pagination={{ pageSize: 5, size: 'small', showSizeChanger: false }}
@@ -302,7 +301,7 @@ export default function DashboardPage() {
                 loading={isLoading}
               />
             ) : (
-              <TicketKanban tickets={tickets} onAddTicket={() => setIsCreateModalOpen(true)} />
+              <TicketKanban tickets={tickets} onAddTicket={() => setIsCreateModalOpen(true)} onViewTicket={setSelectedTicketId} />
             )}
           </Card>
         </Col>
@@ -377,6 +376,11 @@ export default function DashboardPage() {
       <CreateTicketModal 
         open={isCreateModalOpen} 
         onClose={() => setIsCreateModalOpen(false)} 
+      />
+      <TicketDetailModal
+        ticketId={selectedTicketId}
+        open={!!selectedTicketId}
+        onClose={() => setSelectedTicketId(null)}
       />
     </Flex>
   )

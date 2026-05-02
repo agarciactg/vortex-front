@@ -1,15 +1,14 @@
-import React from 'react'
 import { Card, Flex, Typography, Badge, Avatar, Space, Button } from 'antd'
 import { PlusOutlined, UserOutlined, MessageOutlined, PaperClipOutlined } from '@ant-design/icons'
 import type { Ticket, TicketStatus } from '@/types/ticket.types'
 import PriorityBadge from '@/components/ui/PriorityBadge'
-import Link from 'next/link'
 
 const { Text } = Typography
 
 interface TicketKanbanProps {
   tickets: Ticket[]
   onAddTicket?: (status: TicketStatus) => void
+  onViewTicket?: (ticketId: string) => void
 }
 
 const COLUMNS: { id: TicketStatus; title: string; color: string }[] = [
@@ -19,7 +18,7 @@ const COLUMNS: { id: TicketStatus; title: string; color: string }[] = [
   { id: 'closed', title: 'CLOSED', color: '#8c8c8c' },
 ]
 
-export default function TicketKanban({ tickets, onAddTicket }: TicketKanbanProps) {
+export default function TicketKanban({ tickets, onAddTicket, onViewTicket }: TicketKanbanProps) {
   return (
     <div style={{ display: 'flex', gap: '16px', overflowX: 'auto', paddingBottom: '16px', minHeight: '60vh' }}>
       {COLUMNS.map((col) => {
@@ -41,7 +40,7 @@ export default function TicketKanban({ tickets, onAddTicket }: TicketKanbanProps
 
             <Flex vertical gap="small" style={{ minHeight: 150 }}>
               {columnTickets.map((ticket) => (
-                <Link key={ticket.id} href={`/tickets/${ticket.id}`}>
+                <div key={ticket.id} onClick={() => onViewTicket?.(ticket.id)}>
                   <Card 
                     size="small" 
                     hoverable 
@@ -77,7 +76,7 @@ export default function TicketKanban({ tickets, onAddTicket }: TicketKanbanProps
                       </Flex>
                     </Flex>
                   </Card>
-                </Link>
+                </div>
               ))}
 
               <Button 
