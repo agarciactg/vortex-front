@@ -3,6 +3,7 @@ import { Card, Flex, Typography, Badge, Avatar, Space, Button, message } from 'a
 import { PlusOutlined, UserOutlined, MessageOutlined, PaperClipOutlined } from '@ant-design/icons'
 import type { Ticket, TicketStatus } from '@/types/ticket.types'
 import PriorityBadge from '@/components/ui/PriorityBadge'
+import Link from 'next/link'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { ticketsService } from '@/services/tickets.service'
 import { queryKeys } from '@/lib/queryKeys'
@@ -12,7 +13,6 @@ const { Text } = Typography
 interface TicketKanbanProps {
   tickets: Ticket[]
   onAddTicket?: (status: TicketStatus) => void
-  onViewTicket?: (ticketId: string) => void
 }
 
 const COLUMNS: { id: TicketStatus; title: string; color: string }[] = [
@@ -22,7 +22,7 @@ const COLUMNS: { id: TicketStatus; title: string; color: string }[] = [
   { id: 'closed', title: 'CLOSED', color: '#8c8c8c' },
 ]
 
-export default function TicketKanban({ tickets, onAddTicket, onViewTicket }: TicketKanbanProps) {
+export default function TicketKanban({ tickets, onAddTicket }: TicketKanbanProps) {
   const qc = useQueryClient()
   const [dragOverCol, setDragOverCol] = useState<TicketStatus | null>(null)
 
@@ -124,42 +124,43 @@ export default function TicketKanban({ tickets, onAddTicket, onViewTicket }: Tic
                   onDragEnd={handleDragEnd}
                   style={{ cursor: 'grab' }}
                 >
-                  <Card 
-                    size="small" 
-                    hoverable 
-                    onClick={() => onViewTicket?.(ticket.id)}
-                    styles={{ body: { padding: 16 } }}
-                    style={{ borderRadius: 8, border: '1px solid #f0f0f0', boxShadow: '0 1px 2px rgba(0,0,0,0.03)' }}
-                  >
-                    <Flex vertical gap="middle">
-                      <Flex justify="space-between" align="flex-start">
-                        <PriorityBadge priority={ticket.priority} />
-                        <Text type="secondary" style={{ fontSize: 12 }}>
-                          TK-{ticket.id.substring(0, 4)}
+                  <Link href={`/tickets/${ticket.id}`}>
+                    <Card 
+                      size="small" 
+                      hoverable 
+                      styles={{ body: { padding: 16 } }}
+                      style={{ borderRadius: 8, border: '1px solid #f0f0f0', boxShadow: '0 1px 2px rgba(0,0,0,0.03)' }}
+                    >
+                      <Flex vertical gap="middle">
+                        <Flex justify="space-between" align="flex-start">
+                          <PriorityBadge priority={ticket.priority} />
+                          <Text type="secondary" style={{ fontSize: 12 }}>
+                            TK-{ticket.id.substring(0, 4)}
+                          </Text>
+                        </Flex>
+                        <Text strong style={{ fontSize: 14, lineHeight: 1.4 }}>
+                          {ticket.title}
                         </Text>
-                      </Flex>
-                      <Text strong style={{ fontSize: 14, lineHeight: 1.4 }}>
-                        {ticket.title}
-                      </Text>
-                      <Flex justify="space-between" align="center">
-                        {ticket.assignee ? (
-                          <Avatar size="small" src={ticket.assignee.avatar_url} icon={!ticket.assignee.avatar_url && <UserOutlined />} />
-                        ) : (
-                          <Avatar size="small" icon={<UserOutlined />} style={{ opacity: 0.5 }} />
-                        )}
-                        <Space size="middle" style={{ color: '#bfbfbf' }}>
-                          <Space size={4}>
-                            <MessageOutlined style={{ fontSize: 14 }} />
-                            <Text type="secondary" style={{ fontSize: 12 }}>0</Text>
+                        <Flex justify="space-between" align="center">
+                          {ticket.assignee ? (
+                            <Avatar size="small" src={ticket.assignee.avatar_url} icon={!ticket.assignee.avatar_url && <UserOutlined />} />
+                          ) : (
+                            <Avatar size="small" icon={<UserOutlined />} style={{ opacity: 0.5 }} />
+                          )}
+                          <Space size="middle" style={{ color: '#bfbfbf' }}>
+                            <Space size={4}>
+                              <MessageOutlined style={{ fontSize: 14 }} />
+                              <Text type="secondary" style={{ fontSize: 12 }}>0</Text>
+                            </Space>
+                            <Space size={4}>
+                              <PaperClipOutlined style={{ fontSize: 14 }} />
+                              <Text type="secondary" style={{ fontSize: 12 }}>0</Text>
+                            </Space>
                           </Space>
-                          <Space size={4}>
-                            <PaperClipOutlined style={{ fontSize: 14 }} />
-                            <Text type="secondary" style={{ fontSize: 12 }}>0</Text>
-                          </Space>
-                        </Space>
+                        </Flex>
                       </Flex>
-                    </Flex>
-                  </Card>
+                    </Card>
+                  </Link>
                 </div>
               ))}
 
