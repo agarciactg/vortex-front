@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import '../styles/globals.css'
 import AntdProvider from '@/providers/AntdProvider'
-
+import QueryProvider from '@/providers/QueryProvider'
 
 export const metadata: Metadata = {
   title: 'Orbidi Ticketing',
@@ -16,9 +16,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <AntdProvider>
+        <QueryProvider>
+          <AntdProvider>
             {children}
-        </AntdProvider>
+          </AntdProvider>
+        </QueryProvider>
       </body>
     </html>
   )

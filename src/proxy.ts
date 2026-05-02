@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-const PUBLIC_ROUTES = ['/login', '/privacy', '/terms']
+const PUBLIC_ROUTES = ['/login', '/auth/callback', '/privacy', '/terms']
 
 const PROTECTED_PREFIXES = ['/dashboard', '/tickets', '/notifications', '/settings']
 
 const TOKEN_COOKIE = 'auth_token'
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
   const token = request.cookies.get(TOKEN_COOKIE)?.value
 
