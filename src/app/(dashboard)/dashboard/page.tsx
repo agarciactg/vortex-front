@@ -47,103 +47,11 @@ import TicketKanban from '@/components/tickets/TicketKanban'
 
 const { Title, Text } = Typography
 
-const columns: ColumnsType<Ticket> = [
-  {
-    title: 'Title',
-    dataIndex: 'title',
-    key: 'title',
-    sorter: (a, b) => a.title.localeCompare(b.title),
-    render: (title: string, record) => (
-      <Flex vertical gap={2}>
-        <Link href={`/tickets/${record.id}`}>
-          <Text strong style={{ color: '#3525cd' }}>{title}</Text>
-        </Link>
-        <Text type="secondary" style={{ fontSize: 12 }}>
-          #{record.id.substring(0, 8)} · by {record.author?.name || 'Unknown'}
-        </Text>
-      </Flex>
-    ),
-  },
-  {
-    title: 'Status',
-    dataIndex: 'status',
-    key: 'status',
-    width: 130,
-    sorter: (a, b) => a.status.localeCompare(b.status),
-    render: (status) => <StatusBadge status={status} />,
-    filters: [
-      { text: 'Open',        value: 'open' },
-      { text: 'In Progress', value: 'in_progress' },
-      { text: 'In Review',   value: 'in_review' },
-      { text: 'Closed',      value: 'closed' },
-    ],
-    onFilter: (value, record) => record.status === value,
-  },
-  {
-    title: 'Priority',
-    dataIndex: 'priority',
-    key: 'priority',
-    width: 120,
-    render: (priority) => <PriorityBadge priority={priority} />,
-    sorter: (a, b) => {
-      const order = { critical: 0, high: 1, medium: 2, low: 3 }
-      return order[a.priority] - order[b.priority]
-    },
-  },
-  {
-    title: 'Assignee',
-    dataIndex: 'assignee',
-    key: 'assignee',
-    width: 160,
-    render: (assignee) =>
-      assignee ? (
-        <Space>
-          <Avatar size="small" icon={<UserOutlined />} />
-          <Text>{assignee.name}</Text>
-        </Space>
-      ) : (
-        <Text type="secondary">Unassigned</Text>
-      ),
-  },
-  {
-    title: 'Updated',
-    dataIndex: 'updated_at',
-    key: 'updated_at',
-    width: 130,
-    render: (date: string) => (
-      <Tooltip title={new Date(date).toLocaleString()}>
-        <Text type="secondary" style={{ fontSize: 12 }}>
-          {formatRelative(date)}
-        </Text>
-      </Tooltip>
-    ),
-    sorter: (a, b) =>
-      new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime(),
-    defaultSortOrder: 'ascend',
-  },
-  {
-    key: 'actions',
-    width: 60,
-    render: (_, record) => (
-      <Link href={`/tickets/${record.id}`}>
-        <Button type="text" icon={<EyeOutlined />} size="small" />
-      </Link>
-    ),
-  },
-]
-
-function formatRelative(dateStr: string): string {
-  const diff = Date.now() - new Date(dateStr).getTime()
-  const m = Math.floor(diff / 60000)
-  if (m < 60) return `${m}m ago`
-  const h = Math.floor(m / 60)
-  if (h < 24) return `${h}h ago`
-  return `${Math.floor(h / 24)}d ago`
-}
+import TicketTable from '@/components/tickets/TicketTable'
 
 export default function DashboardPage() {
   const [ticketView, setTicketView] = useState<'all' | 'mine'>('all')
-  const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list')
+  const [viewMode, setViewMode] = useState<'list' | 'kanban'>('kanban')
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [searchText, setSearchText] = useState('')
   const user = useAuthStore((s) => s.user)
@@ -291,14 +199,10 @@ export default function DashboardPage() {
             }
           >
             {viewMode === 'list' ? (
-              <Table<Ticket>
+              <TicketTable
                 dataSource={tickets}
-                columns={columns}
-                rowKey="id"
-                size="small"
-                pagination={{ pageSize: 5, size: 'small', showSizeChanger: false }}
-                scroll={{ x: 600 }}
                 loading={isLoading}
+                pagination={{ pageSize: 5, size: 'small', showSizeChanger: false }}
               />
             ) : (
               <TicketKanban tickets={tickets} onAddTicket={() => setIsCreateModalOpen(true)} />
