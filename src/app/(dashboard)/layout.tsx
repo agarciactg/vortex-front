@@ -4,7 +4,6 @@ import { useState } from 'react'
 import {
   Avatar,
   Badge,
-  Breadcrumb,
   Button,
   Dropdown,
   Flex,
@@ -20,7 +19,6 @@ import {
   LogoutOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
-  SettingOutlined,
   TagsOutlined,
   UserOutlined,
 } from '@ant-design/icons'
@@ -28,6 +26,8 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { api } from '@/services/api'
 import { useAuthStore } from '@/store/auth.store'
+import { NotificationProvider } from '@/components/notifications/NotificationProvider'
+import { useUnreadCount } from '@/hooks/useNotifications'
 
 const { Header, Sider, Content } = Layout
 const { Text } = Typography
@@ -47,26 +47,10 @@ const NAV_ITEMS: MenuProps['items'] = [
     key: '/notifications',
     icon: <BellOutlined />,
     label: <Link href="/notifications">Notifications</Link>,
-  },
-  {
-    key: '/settings',
-    icon: <SettingOutlined />,
-    label: <Link href="/settings">Settings</Link>,
-  },
+  }
 ]
 
 const USER_MENU: MenuProps['items'] = [
-  {
-    key: 'profile',
-    icon: <UserOutlined />,
-    label: 'Profile',
-  },
-  {
-    key: 'settings',
-    icon: <SettingOutlined />,
-    label: 'Settings',
-  },
-  { type: 'divider' },
   {
     key: 'logout',
     icon: <LogoutOutlined />,
@@ -79,7 +63,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [collapsed, setCollapsed] = useState(false)
   const pathname = usePathname()
   const router = useRouter()
-  const logout = useAuthStore((s) => s.logout)
+  const { user, logout } = useAuthStore()
+  const { data: unreadCount = 0 } = useUnreadCount()
 
   const handleMenuClick: MenuProps['onClick'] = async (e) => {
     if (e.key === 'logout') {
@@ -144,7 +129,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
           <Space>
             <Link href="/notifications">
-              <Badge count={3} size="small">
+              <Badge count={unreadCount} size="small" overflowCount={99}>
                 <Button type="text" icon={<BellOutlined />} />
               </Badge>
             </Link>
@@ -153,7 +138,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <Button type="text">
                 <Space>
                   <Avatar size="small" icon={<UserOutlined />} style={{ backgroundColor: '#3525cd' }} />
-                  <Text style={{ fontSize: 13 }}>Ana García</Text>
+                  <Text style={{ fontSize: 13 }}>{user?.email || user?.name || 'User'}</Text>
                 </Space>
               </Button>
             </Dropdown>
@@ -161,7 +146,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </Header>
 
         <Content style={{ margin: 24 }}>
-          {children}
+          <NotificationProvider>
+            {children}
+          </NotificationProvider>
         </Content>
 
       </Layout>

@@ -150,7 +150,7 @@ export default function TicketComments({ ticketId, currentUserId }: TicketCommen
           style={{ padding: 0, marginBottom: 12 }}
         />
         <Flex justify="space-between" align="center" style={{ borderTop: '1px solid #f0f0f0', paddingTop: 10 }}>
-          <Button type="text" icon={<PaperClipOutlined />} size="small" style={{ color: '#8c8c8c' }} />
+          <Button type="text" size="small" style={{ color: '#8c8c8c' }} />
           <Space>
             <Button size="small" onClick={() => setContent('')} disabled={!content}>
               Cancel
