@@ -19,6 +19,7 @@ import {
   LogoutOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
+  RobotOutlined,
   TagsOutlined,
   UserOutlined,
 } from '@ant-design/icons'
@@ -47,7 +48,12 @@ const NAV_ITEMS: MenuProps['items'] = [
     key: '/notifications',
     icon: <BellOutlined />,
     label: <Link href="/notifications">Notifications</Link>,
-  }
+  },
+  {
+    key: '/ai-assistant',
+    icon: <RobotOutlined />,
+    label: <Link href="/ai-assistant">AI Assistant</Link>,
+  },
 ]
 
 const USER_MENU: MenuProps['items'] = [
