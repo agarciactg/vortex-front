@@ -118,9 +118,7 @@ export default function TicketAttachments({ ticketId }: TicketAttachmentsProps) 
                       type="text"
                       size="small"
                       icon={<DownloadOutlined />}
-                      href={attachmentsService.download(ticketId, att.id)}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      onClick={() => attachmentsService.download(ticketId, att)}
                     />
                   </Tooltip>
                   <Popconfirm

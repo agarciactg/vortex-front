@@ -16,8 +16,23 @@ export const attachmentsService = {
     return data
   },
 
-  download: (ticketId: string, attachmentId: string): string =>
-    `${process.env.NEXT_PUBLIC_API_URL}/api/v1/tickets/${ticketId}/attachments/${attachmentId}/download`,
+  download: async (ticketId: string, attachment: Attachment): Promise<void> => {
+    const response = await api.get(`/tickets/${ticketId}/attachments/${attachment.id}/download`, {
+      responseType: 'blob',
+    })
+    
+    const url = window.URL.createObjectURL(new Blob([response.data]))
+    const link = document.createElement('a')
+    link.href = url
+    
+    link.setAttribute('download', attachment.original_filename)
+    
+    document.body.appendChild(link)
+    link.click()
+    
+    link.remove()
+    window.URL.revokeObjectURL(url)
+  },
 
   delete: async (ticketId: string, attachmentId: string): Promise<void> => {
     await api.delete(`/tickets/${ticketId}/attachments/${attachmentId}`)
