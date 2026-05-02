@@ -149,19 +149,6 @@ export default function TicketsPage() {
                 })}
               </Flex>
             </Card>
-
-            <Card size="small" title={<Title level={5} style={{ margin: 0 }}>My Efficiency</Title>}>
-              <Flex vertical align="center" gap="small" style={{ padding: '10px 0' }}>
-                <Progress 
-                  type="dashboard" 
-                  percent={userTickets.length > 0 ? Math.round((closedUserTicketsCount / userTickets.length) * 100) : 0} 
-                  strokeColor="#52c41a"
-                  size={120}
-                  gapDegree={30}
-                />
-                <Text type="secondary" style={{ fontSize: 12 }}>Resolution Rate</Text>
-              </Flex>
-            </Card>
           </Flex>
         </Col>
         <Col xs={24} md={18}>

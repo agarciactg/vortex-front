@@ -45,23 +45,6 @@ export default function TicketFilters({
         <Divider style={{ margin: '8px 0' }} />
 
         <div>
-          <Text strong style={{ fontSize: 13, display: 'block', marginBottom: 8 }}>View</Text>
-          <Radio.Group 
-            value={currentView} 
-            onChange={(e) => onViewChange(e.target.value)}
-            optionType="button"
-            buttonStyle="solid"
-            size="small"
-            style={{ width: '100%' }}
-          >
-            <Radio.Button value="all" style={{ width: '50%', textAlign: 'center' }}>All</Radio.Button>
-            <Radio.Button value="mine" style={{ width: '50%', textAlign: 'center' }}>Mine</Radio.Button>
-          </Radio.Group>
-        </div>
-
-        <Divider style={{ margin: '8px 0' }} />
-
-        <div>
           <Text strong style={{ fontSize: 13, display: 'block', marginBottom: 8 }}>Status</Text>
           <Checkbox.Group
             style={{ width: '100%' }}
