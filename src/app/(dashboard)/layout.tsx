@@ -141,10 +141,25 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </Link>
 
             <Dropdown menu={{ items: USER_MENU, onClick: handleMenuClick }} placement="bottomRight" arrow>
-              <Button type="text">
+              <Button type="text" style={{ height: 'auto', padding: '4px 8px' }}>
                 <Space>
-                  <Avatar size="small" icon={<UserOutlined />} style={{ backgroundColor: '#3525cd' }} />
-                  <Text style={{ fontSize: 13 }}>{user?.email || user?.name || 'User'}</Text>
+                  {user?.avatar_url ? (
+                    <Avatar size="small" src={user.avatar_url} />
+                  ) : (
+                    <Avatar size="small" icon={<UserOutlined />} style={{ backgroundColor: '#3525cd' }} />
+                  )}
+                  <Flex vertical align="flex-start" gap={0}>
+                    <Text style={{ fontSize: 13, lineHeight: 1.2 }}>{user?.name || user?.email || 'User'}</Text>
+                    {user?.id ? (
+                      <Text 
+                        type="secondary" 
+                        style={{ fontSize: 11, lineHeight: 1.2 }}
+                        copyable={{ text: user.id, tooltips: ['Copy ID', '¡Copied!'] }}
+                      >
+                        ID: {user.id}
+                      </Text>
+                    ) : null}
+                  </Flex>
                 </Space>
               </Button>
             </Dropdown>

@@ -23,34 +23,17 @@ import TypingIndicator from '@/components/chat/TypingIndicator'
 import ConversationSidebar from '@/components/chat/ConversationSidebar'
 import styles from './AIChatView.module.css'
 import { v4 as uuidv4 } from 'uuid'
+import { aiService } from '@/services/ai.service'
 
 const { Text, Title } = Typography
 const { TextArea } = Input
 
 const QUICK_ACTIONS = [
-  '📋 Show me the open tickets summary',
-  '🔍 Which tickets are high priority?',
-  '📊 Give me a status report for this week',
-  '🤖 How can you help me with ticketing?',
+  '📋 Need help creating a new ticket?',
+  '🔍 Want to reassign a ticket to another team member?',
+  '📊 Need to update the status of an existing ticket?',
+  '🤖 Want to add a comment or check ticket details?',
 ]
-
-async function mockAiReply(userMessage: string): Promise<string> {
-  await new Promise((r) => setTimeout(r, 1400 + Math.random() * 800))
-  const responses: Record<string, string> = {
-    open: 'Right now there are **12 open tickets**, 3 of which are flagged as high priority. Would you like me to list them?',
-    priority: 'High-priority tickets: TK-041 (Payment gateway error), TK-038 (API timeout), TK-031 (Login failure). Should I assign any of them?',
-    report: 'This week: 24 tickets created, 18 resolved, 6 still open. Resolution rate is 75% — slightly above the weekly average of 71%. 🎉',
-    help: 'I can help you search, summarize, create, assign, and analyze tickets. Just ask me anything about your ticketing workflow!',
-  }
-
-  const lower = userMessage.toLowerCase()
-  for (const [key, val] of Object.entries(responses)) {
-    if (lower.includes(key)) return val
-  }
-
-  return `I received your message: *"${userMessage}"*.\n\nThis is a mock response — once you wire my endpoint I'll be fully operational. Let me know what you need! 🚀`
-}
-
 
 function createConversation(firstMsg?: string): ChatConversation {
   const now = new Date()
@@ -64,14 +47,44 @@ function createConversation(firstMsg?: string): ChatConversation {
 }
 
 export default function AIChatView() {
-  const [conversations, setConversations] = useState<ChatConversation[]>([createConversation()])
-  const [activeId, setActiveId] = useState<string>(conversations[0].id)
+  const [conversations, setConversations] = useState<ChatConversation[]>([])
+  const [activeId, setActiveId] = useState<string>('')
   const [input, setInput] = useState('')
   const [isTyping, setIsTyping] = useState(false)
+  const [isLoaded, setIsLoaded] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<TextAreaRef>(null)
 
-  const active = conversations.find((c) => c.id === activeId)!
+  useEffect(() => {
+    const saved = localStorage.getItem('ai_conversations')
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved, (key, value) => {
+          if (key === 'createdAt' || key === 'updatedAt' || key === 'timestamp') return new Date(value)
+          return value
+        })
+        setConversations(parsed)
+        setActiveId(parsed[0]?.id || '')
+      } catch (e) {
+        const initial = [createConversation()]
+        setConversations(initial)
+        setActiveId(initial[0].id)
+      }
+    } else {
+      const initial = [createConversation()]
+      setConversations(initial)
+      setActiveId(initial[0].id)
+    }
+    setIsLoaded(true)
+  }, [])
+
+  useEffect(() => {
+    if (isLoaded) {
+      localStorage.setItem('ai_conversations', JSON.stringify(conversations))
+    }
+  }, [conversations, isLoaded])
+
+  const active = conversations.find((c) => c.id === activeId)
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -86,8 +99,12 @@ export default function AIChatView() {
 
   const sendMessage = useCallback(
     async (text: string) => {
+      if (!active) return
       const trimmed = text.trim()
       if (!trimmed || isTyping) return
+
+      const cId = active.id
+      const isFirst = active.messages.length === 0
 
       const userMsg: ChatMessage = {
         id: uuidv4(),
@@ -96,7 +113,7 @@ export default function AIChatView() {
         timestamp: new Date(),
       }
 
-      updateConversation(activeId, (c) => ({
+      updateConversation(cId, (c) => ({
         ...c,
         title: c.messages.length === 0 ? trimmed.slice(0, 40) : c.title,
         messages: [...c.messages, userMsg],
@@ -107,18 +124,46 @@ export default function AIChatView() {
       setIsTyping(true)
 
       try {
-        const replyText = await mockAiReply(trimmed)
+        const res = await aiService.chat({
+          message: trimmed,
+          conversationId: isFirst ? undefined : cId,
+        })
 
         const aiMsg: ChatMessage = {
           id: uuidv4(),
           role: 'assistant',
-          content: replyText,
+          content: res.reply,
           timestamp: new Date(),
         }
 
-        updateConversation(activeId, (c) => ({
+        if (isFirst) {
+          setConversations((prev) =>
+            prev.map((c) => {
+              if (c.id === cId) {
+                return { ...c, id: res.conversation_id, messages: [...c.messages, aiMsg], updatedAt: new Date() }
+              }
+              return c
+            })
+          )
+          setActiveId(res.conversation_id)
+        } else {
+          updateConversation(cId, (c) => ({
+            ...c,
+            messages: [...c.messages, aiMsg],
+            updatedAt: new Date(),
+          }))
+        }
+      } catch (err: any) {
+        const errorDetail = err.response?.data?.detail || err.message
+        const errMsg: ChatMessage = {
+          id: uuidv4(),
+          role: 'assistant',
+          content: `There was an error connecting to the assistant: ${errorDetail}`,
+          timestamp: new Date(),
+        }
+        updateConversation(cId, (c) => ({
           ...c,
-          messages: [...c.messages, aiMsg],
+          messages: [...c.messages, errMsg],
           updatedAt: new Date(),
         }))
       } finally {
@@ -126,7 +171,7 @@ export default function AIChatView() {
         setTimeout(() => inputRef.current?.focus(), 50)
       }
     },
-    [activeId, isTyping, updateConversation]
+    [active, isTyping, updateConversation]
   )
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -164,6 +209,8 @@ export default function AIChatView() {
       updatedAt: new Date(),
     }))
   }
+
+  if (!isLoaded || !active) return null
 
   return (
     <Flex className={styles.root}>
@@ -254,7 +301,7 @@ export default function AIChatView() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Ask the AI assistant… (Shift+Enter for new line)"
+              placeholder="Ask the assistant... (Shift+Enter for new line)"
               autoSize={{ minRows: 1, maxRows: 5 }}
               className={styles.textarea}
               disabled={isTyping}
