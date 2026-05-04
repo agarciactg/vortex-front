@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Button, Divider, Form, Input, Typography, message } from 'antd'
+import { App, Button, Divider, Form, Input, Typography } from 'antd'
 import { MailOutlined } from '@ant-design/icons'
 
 const { Text } = Typography
@@ -12,6 +12,7 @@ interface LoginFormValues {
 
 export default function LoginForm() {
   const [form] = Form.useForm<LoginFormValues>()
+  const { message } = App.useApp()
   const [emailLoading, setEmailLoading] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
 

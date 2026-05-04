@@ -58,8 +58,6 @@ export default function TicketsPage() {
     tickets = tickets.filter(t => t.priority === selectedPriority)
   }
 
-  const userTickets = (data?.items || []).filter(t => t.author?.id === user?.id || t.assignee?.id === user?.id)
-  const closedUserTicketsCount = userTickets.filter(t => t.status === 'closed').length
   const myTicketsCount = (data?.items || []).filter(t => t.assignee?.id === user?.id).length
   const openCount = tickets.filter(t => t.status === 'open').length
 
@@ -86,29 +84,29 @@ export default function TicketsPage() {
 
       <Row gutter={[16, 16]}>
         <Col xs={24} sm={8}>
-          <Card bordered={false} className="stat-card">
+          <Card variant="borderless" className="stat-card">
             <Statistic
               title={<Text type="secondary"><FileTextOutlined /> Total in View</Text>}
               value={tickets.length}
-              valueStyle={{ color: '#1a1a1a', fontWeight: 600 }}
+              styles={{ content: { color: '#1a1a1a', fontWeight: 600 } }}
             />
           </Card>
         </Col>
         <Col xs={24} sm={8}>
-          <Card bordered={false} className="stat-card">
+          <Card variant="borderless" className="stat-card">
             <Statistic
               title={<Text type="secondary"><UserOutlined /> Assigned to Me</Text>}
               value={myTicketsCount}
-              valueStyle={{ color: '#3525cd', fontWeight: 600 }}
+              styles={{ content: { color: '#3525cd', fontWeight: 600 } }}
             />
           </Card>
         </Col>
         <Col xs={24} sm={8}>
-          <Card bordered={false} className="stat-card">
+          <Card variant="borderless" className="stat-card">
             <Statistic
               title={<Text type="secondary"><ClockCircleOutlined /> Open Issues</Text>}
               value={openCount}
-              valueStyle={{ color: '#fa8c16', fontWeight: 600 }}
+              styles={{ content: { color: '#fa8c16', fontWeight: 600 } }}
             />
           </Card>
         </Col>
@@ -142,7 +140,7 @@ export default function TicketsPage() {
                         showInfo={false} 
                         size="small" 
                         strokeColor={colors[p as keyof typeof colors]} 
-                        trailColor="#f0f0f0"
+                        railColor="#f0f0f0"
                       />
                     </div>
                   )
@@ -152,7 +150,7 @@ export default function TicketsPage() {
           </Flex>
         </Col>
         <Col xs={24} md={18}>
-          <Card bodyStyle={{ padding: 0 }} bordered={false} style={{ borderRadius: 12, overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
+          <Card styles={{ body: { padding: 0 } }} variant="borderless" style={{ borderRadius: 12, overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
             <TicketTable 
               dataSource={tickets} 
               loading={isLoading} 

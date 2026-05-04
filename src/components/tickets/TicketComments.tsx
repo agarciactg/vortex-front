@@ -2,23 +2,21 @@
 
 import { useState } from 'react'
 import {
+  App,
   Avatar,
   Button,
   Card,
   Empty,
   Flex,
   Input,
-  List,
   Popconfirm,
   Skeleton,
   Space,
   Tooltip,
   Typography,
-  message,
 } from 'antd'
 import {
   DeleteOutlined,
-  PaperClipOutlined,
   SendOutlined,
   UserOutlined,
 } from '@ant-design/icons'
@@ -44,6 +42,7 @@ interface TicketCommentsProps {
 
 export default function TicketComments({ ticketId, currentUserId }: TicketCommentsProps) {
   const [content, setContent] = useState('')
+  const { message } = App.useApp()
 
   const { data: comments = [], isLoading } = useComments(ticketId)
   const { mutate: createComment, isPending: creating } = useCreateComment(ticketId)
@@ -79,62 +78,52 @@ export default function TicketComments({ ticketId, currentUserId }: TicketCommen
       ) : comments.length === 0 ? (
         <Empty description="No comments yet. Be the first to comment." image={Empty.PRESENTED_IMAGE_SIMPLE} />
       ) : (
-        <List
-          dataSource={comments}
-          split={false}
-          renderItem={(comment) => (
-            <List.Item
-              key={comment.id}
-              style={{ padding: '8px 0', alignItems: 'flex-start' }}
-              extra={
-                comment.author.id === currentUserId && (
-                  <Popconfirm
-                    title="Delete this comment?"
-                    okText="Delete"
-                    okType="danger"
-                    onConfirm={() => handleDelete(comment.id)}
-                  >
-                    <Tooltip title="Delete">
-                      <Button type="text" size="small" danger icon={<DeleteOutlined />} />
-                    </Tooltip>
-                  </Popconfirm>
-                )
-              }
-            >
-              <List.Item.Meta
-                avatar={
-                  <Avatar
-                    src={comment.author.avatar_url}
-                    icon={!comment.author.avatar_url && <UserOutlined />}
-                    size={36}
-                  />
-                }
-                title={
+        <Flex vertical gap="middle">
+          {comments.map((comment) => (
+            <Flex key={comment.id} gap="middle" align="flex-start" style={{ padding: '8px 0' }}>
+              <Avatar
+                src={comment.author.avatar_url}
+                icon={!comment.author.avatar_url && <UserOutlined />}
+                size={36}
+                style={{ flexShrink: 0 }}
+              />
+              <Flex vertical style={{ flex: 1, minWidth: 0 }}>
+                <Flex justify="space-between" align="center">
                   <Space size="small">
                     <Text strong style={{ fontSize: 13 }}>{comment.author.name}</Text>
                     <Text type="secondary" style={{ fontSize: 12 }}>
                       {formatRelative(comment.created_at)}
                     </Text>
                   </Space>
-                }
-                description={
-                  <div
-                    style={{
-                      backgroundColor: '#f0f3ff',
-                      padding: '10px 14px',
-                      borderRadius: '0 10px 10px 10px',
-                      marginTop: 4,
-                    }}
-                  >
-                    <Text style={{ color: '#464555', fontSize: 14, whiteSpace: 'pre-wrap' }}>
-                      {comment.content}
-                    </Text>
-                  </div>
-                }
-              />
-            </List.Item>
-          )}
-        />
+                  {comment.author.id === currentUserId && (
+                    <Popconfirm
+                      title="Delete this comment?"
+                      okText="Delete"
+                      okType="danger"
+                      onConfirm={() => handleDelete(comment.id)}
+                    >
+                      <Tooltip title="Delete">
+                        <Button type="text" size="small" danger icon={<DeleteOutlined />} />
+                      </Tooltip>
+                    </Popconfirm>
+                  )}
+                </Flex>
+                <div
+                  style={{
+                    backgroundColor: '#f0f3ff',
+                    padding: '10px 14px',
+                    borderRadius: '0 10px 10px 10px',
+                    marginTop: 4,
+                  }}
+                >
+                  <Text style={{ color: '#464555', fontSize: 14, whiteSpace: 'pre-wrap' }}>
+                    {comment.content}
+                  </Text>
+                </div>
+              </Flex>
+            </Flex>
+          ))}
+        </Flex>
       )}
 
       <Card size="small">

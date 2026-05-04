@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect } from 'react'
-import { Modal, Form, Input, Select, message } from 'antd'
+import { App, Modal, Form, Input, Select } from 'antd'
 import { useCreateTicket } from '@/hooks/useTickets'
 import type { TicketCreate, TicketPriority } from '@/types/ticket.types'
 
@@ -12,6 +12,7 @@ interface CreateTicketModalProps {
 
 const CreateTicketModal: React.FC<CreateTicketModalProps> = ({ open, onClose }) => {
   const [form] = Form.useForm()
+  const { message } = App.useApp()
   const { mutate: createTicket, isPending } = useCreateTicket()
 
   useEffect(() => {

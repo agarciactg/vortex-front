@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import {
-  Avatar,
   Badge,
   Breadcrumb,
   Button,
@@ -15,32 +14,22 @@ import {
   Segmented,
   Space,
   Statistic,
-  Table,
   Tag,
-  Tooltip,
   Typography,
 } from 'antd'
-import type { ColumnsType } from 'antd/es/table'
 import {
   AppstoreOutlined,
   CheckCircleOutlined,
-  ClockCircleOutlined,
-  EyeOutlined,
   FileTextOutlined,
   FolderOpenOutlined,
   PlusOutlined,
   RightOutlined,
   SearchOutlined,
   SyncOutlined,
-  TeamOutlined,
   UnorderedListOutlined,
-  UserOutlined,
 } from '@ant-design/icons'
 import Link from 'next/link'
-import StatusBadge from '@/components/ui/StatusBadge'
-import PriorityBadge from '@/components/ui/PriorityBadge'
-import type { Ticket } from '@/types/ticket.types'
-import { useTickets, useCreateTicket } from '@/hooks/useTickets'
+import { useTickets } from '@/hooks/useTickets'
 import { useAuthStore } from '@/store/auth.store'
 import CreateTicketModal from '@/components/tickets/CreateTicketModal'
 import TicketKanban from '@/components/tickets/TicketKanban'

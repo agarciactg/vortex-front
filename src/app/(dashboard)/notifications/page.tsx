@@ -6,7 +6,6 @@ import {
   Card,
   Empty,
   Flex,
-  List,
   Skeleton,
   Space,
   Tag,
@@ -72,12 +71,12 @@ export default function NotificationsPage() {
           <Empty description="No notifications yet" />
         </Card>
       ) : (
-        <List
-          itemLayout="horizontal"
-          dataSource={notifications}
-          renderItem={(item) => (
+        <Flex vertical gap={0}>
+          {notifications.map((item) => (
             <Card
+              key={item.id}
               size="small"
+              styles={{ body: { padding: '12px 16px' } }}
               style={{
                 marginBottom: 12,
                 borderLeft: item.is_read ? '1px solid #f0f0f0' : '4px solid #1890ff',
@@ -86,31 +85,28 @@ export default function NotificationsPage() {
               hoverable
               onClick={() => !item.is_read && markAsRead(item.id)}
             >
-              <List.Item
-                actions={[
-                  <Link key="view" href={`/tickets/${item.ticket_id}`}>
-                    <Button type="link">View Ticket</Button>
-                  </Link>,
-                ]}
-              >
-                <List.Item.Meta
-                  avatar={NOTIFICATION_ICONS[item.type]}
-                  title={
-                    <Space>
+              <Flex justify="space-between" align="center">
+                <Flex align="center" gap="middle" style={{ flex: 1 }}>
+                  <div style={{ fontSize: 18, display: 'flex' }}>
+                    {NOTIFICATION_ICONS[item.type]}
+                  </div>
+                  <Flex vertical gap={2}>
+                    <Space size={4}>
                       <Text strong={!item.is_read}>{item.message}</Text>
-                      {!item.is_read && <Tag color="blue">New</Tag>}
+                      {!item.is_read && <Tag color="blue" style={{ fontSize: 10, lineHeight: '14px', height: 16 }}>New</Tag>}
                     </Space>
-                  }
-                  description={
                     <Text type="secondary" style={{ fontSize: 12 }}>
                       {dayjs(item.created_at).fromNow()}
                     </Text>
-                  }
-                />
-              </List.Item>
+                  </Flex>
+                </Flex>
+                <Link href={`/tickets/${item.ticket_id}`} onClick={(e) => e.stopPropagation()}>
+                  <Button type="link">View Ticket</Button>
+                </Link>
+              </Flex>
             </Card>
-          )}
-        />
+          ))}
+        </Flex>
       )}
     </Flex>
   )

@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Card, Flex, Typography, Badge, Avatar, Space, Button, message } from 'antd'
+import { App, Card, Flex, Typography, Badge, Avatar, Space, Button } from 'antd'
 import { PlusOutlined, UserOutlined, MessageOutlined, PaperClipOutlined } from '@ant-design/icons'
 import type { Ticket, TicketStatus } from '@/types/ticket.types'
 import PriorityBadge from '@/components/ui/PriorityBadge'
@@ -23,6 +23,7 @@ const COLUMNS: { id: TicketStatus; title: string; color: string }[] = [
 ]
 
 export default function TicketKanban({ tickets, onAddTicket }: TicketKanbanProps) {
+  const { message } = App.useApp()
   const qc = useQueryClient()
   const [dragOverCol, setDragOverCol] = useState<TicketStatus | null>(null)
 

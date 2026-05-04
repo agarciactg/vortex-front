@@ -1,6 +1,7 @@
 'use client'
 
 import {
+  App,
   Avatar,
   Button,
   Card,
@@ -12,7 +13,6 @@ import {
   Tooltip,
   Typography,
   Upload,
-  message,
 } from 'antd'
 import {
   DeleteOutlined,
@@ -58,6 +58,7 @@ interface TicketAttachmentsProps {
 }
 
 export default function TicketAttachments({ ticketId }: TicketAttachmentsProps) {
+  const { message } = App.useApp()
   const { data: attachments = [], isLoading } = useAttachments(ticketId)
   const { mutate: uploadFile, isPending: uploading } = useUploadAttachment(ticketId)
   const { mutate: deleteFile } = useDeleteAttachment(ticketId)

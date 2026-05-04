@@ -3,18 +3,17 @@
 import { use } from 'react'
 import { useRouter } from 'next/navigation'
 import {
+  App,
   Avatar,
   Breadcrumb,
   Button,
   Card,
   Divider,
   Flex,
-  Modal,
   Select,
   Space,
   Spin,
   Typography,
-  message,
 } from 'antd'
 import {
   ArrowLeftOutlined,
@@ -53,6 +52,7 @@ const STATUS_OPTIONS = [
 export default function TicketDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
   const { id } = use(params)
+  const { modal, message } = App.useApp()
 
   const { data: ticket, isLoading, isError } = useTicket(id)
   const { user: currentUser } = useAuth()
@@ -80,7 +80,7 @@ export default function TicketDetailPage({ params }: { params: Promise<{ id: str
   }
 
   const handleDelete = () => {
-    Modal.confirm({
+    modal.confirm({
       title:   'Delete Ticket',
       content: 'Are you sure? This action cannot be undone.',
       okText:  'Delete',

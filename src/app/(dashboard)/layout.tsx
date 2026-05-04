@@ -141,7 +141,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </Link>
 
             <Dropdown menu={{ items: USER_MENU, onClick: handleMenuClick }} placement="bottomRight" arrow>
-              <Button type="text" style={{ height: 'auto', padding: '4px 8px' }}>
+              <Flex 
+                align="center" 
+                gap="small" 
+                style={{ 
+                  cursor: 'pointer', 
+                  padding: '4px 8px', 
+                  borderRadius: 6,
+                  transition: 'background 0.3s',
+                }}
+              >
                 <Space>
                   {user?.avatar_url ? (
                     <Avatar size="small" src={user.avatar_url} />
@@ -161,7 +170,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     ) : null}
                   </Flex>
                 </Space>
-              </Button>
+              </Flex>
             </Dropdown>
           </Space>
         </Header>
